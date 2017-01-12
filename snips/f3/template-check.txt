@@ -1,0 +1,4 @@
+<check if="{{ bool condition }}">
+    <true>true-block</true>
+    <false>false-block</false>
+</check>

@@ -1,0 +1,1 @@
+<include [ if="{{ bool condition }}" ] href="{{ string subtemplate }}" [ with="{{ string additional_variables }}" ] />

@@ -1,0 +1,15 @@
+<?php
+
+namespace Controllers;
+
+//! Main module
+class ControllerName extends Controller {
+    
+    function __construct() {
+       
+    }
+
+    function xyz($f3) {
+    }
+
+}  

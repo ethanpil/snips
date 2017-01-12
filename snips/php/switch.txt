@@ -1,0 +1,14 @@
+switch ( ) {
+   
+   case label1:
+      
+        break;  
+   
+   case label2:
+      
+        break;
+   
+   default:
+
+        break;
+}

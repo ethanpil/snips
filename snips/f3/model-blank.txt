@@ -1,0 +1,15 @@
+<?php
+
+namespace Models;
+
+class ModelName extends Model {
+
+	/**
+	*	Mapper constructor
+	*	@return object
+	**/
+	function __construct() {
+		parent::__construct(\Base::instance()->get('DB'),'tablename');
+	}
+
+}

@@ -1,0 +1,1 @@
+json_encode( $mapper->cast(), JSON_PRETTY_PRINT);

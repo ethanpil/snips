@@ -1,0 +1,3 @@
+<loop from="{{ statement }}" to="{{ bool expr }}" [ step="{{ statement }}" ]>
+    text-block
+</loop>
