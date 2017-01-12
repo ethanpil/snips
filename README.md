@@ -4,6 +4,8 @@ https://github.com/ethanpil/snips
 
 [Download Binary](https://github.com/ethanpil/snips/releases)
 
+![snips](https://cloud.githubusercontent.com/assets/254784/21910990/78f0bc36-d8ec-11e6-84c8-88a801bd4d20.gif)
+
 ## Instructions
 
 * Activate Snips using the hotkey - Default is CTRL+` (CTRL+Backtick)
