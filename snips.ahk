@@ -1,6 +1,6 @@
 #SingleInstance force
 
-SnipsVersion := 1.0
+SnipsVersion := 1.1
 
 ; Setup the GUI window, don't show it until data is loaded
 Gui, 1:Add, Edit, w220 hwndSearchHWND vSearchTerm gSearch

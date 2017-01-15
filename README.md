@@ -1,4 +1,4 @@
-# Snips v1.0
+# Snips v1.1
 A simple way to store and use text snippets in any windows program.
 https://github.com/ethanpil/snips
 
@@ -21,8 +21,13 @@ All snippets are plain text files stored in the \snips folder under the program 
 ### History
 
 ````
+    v1.1    Added support for cmd.exe
+            Added some additional default snippets
+            Improved paste speed
+            Improved cursor movement speed
+            Added category name to search. (Example: type 'html' to see all \html snippets)
 
-    v1.0 - Initial Release
+    v1.0    Initial Release
 
 ````
 
@@ -63,6 +68,11 @@ The <<-2 on the last line of the file tells snips to position the cursor 2 chara
 ## Default Snippets
 
 I have included some basics to get you started. Please feel free to share any useful default snippets you think other users will appreciate. I prefer a PR on GitHub for your submissions.
+
+## To Do
+
+* Add CTRL+N hotlink to easily create a new snippet under a category (undecided)
+* Improve UI
 
 ## Warranty and Support
 
