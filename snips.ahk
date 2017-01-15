@@ -286,9 +286,9 @@ SnipSend(snipid) {
     guicontrol, 1:hide, SR
     guicontrol, 1:show, ST    
         
-   ;Reset the tree
-   GuiControl, -Redraw, ST
-   ItemID = 0  ; Causes the loop's first iteration to start the search at the top of the tree.
+    ;Reset the tree
+    GuiControl, -Redraw, ST
+    ItemID = 0  ; Causes the loop's first iteration to start the search at the top of the tree.
     Loop
     {
         ItemID := TV_GetNext(ItemID, "Full") 
@@ -296,19 +296,18 @@ SnipSend(snipid) {
             break
         TV_Modify(ItemID, "-Expand")
     }
-   GuiControl, +Redraw, ST        
+    GuiControl, +Redraw, ST        
         
     global SnipsArray
-    ; FileRead, Clipboard, % SnipsArray[snipid]
     FileRead, Snip, % SnipsArray[snipid]
     
     ;Position cursor if data is there
     SnipLen := StrLen(Snip)
     FoundPos := RegExMatch(Snip, "\n<<\-(\d*)\Z", ReversePos)
-    
+ 
     if (FoundPos > 0)
         StringTrimRight, Snip, Snip, ((SnipLen+1) - FoundPos)
-    
+ 
     ; Backup Clipboard
     ClipSaved := ClipboardAll
     
@@ -317,14 +316,22 @@ SnipSend(snipid) {
     ClipWait
     WinActivate, ahk_id %active_id%
     Sleep, 300
-    Send ^v
     
-    ; Restore Clipbaord
-    Clipboard := ClipSaved
-    
+    ;Exception for command prompt which does not accept CTRL-V
+    IfWinActive, ahk_class ConsoleWindowClass
+    {
+        Send !{Space}ep
+        Sleep 50
+    }
+    Else
+        SendInput ^v
     ;Move the cursor if possible
     if (ReversePos1)
-        Send {Left %ReversePos1%}    
+        SendInput {Left %ReversePos1%}    
+    
+    ; Restore Clipboard
+    Clipboard := ClipSaved
+    
 }
 
 exit:
