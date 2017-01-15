@@ -19,6 +19,9 @@ gosub, RefreshSnips
 IniRead, SnipsActivate, %A_ScriptDir%\snips.ini, snips, key
 Hotkey, %SnipsActivate%, view
 
+;Load other ini settings into memory
+IniRead, SnipsFolderSearch, %A_ScriptDir%\snips.ini, snips, foldernamesearch
+
 ; Add the tray icon and menu
 ;menu, tray, Icon, %A_ScriptDir%\snips.ico, , 1 ;Not needed when compiled with AHK2EXE
 menu, tray, nostandard
@@ -84,6 +87,7 @@ return
 
 ^R::gosub, RefreshSnips
 
+
 #IfWinActive
 
 RefreshSnips:
@@ -117,6 +121,8 @@ Search:
     GuiControlGet, SearchTerm
     
     global SnipsArray
+    global SnipsFolderSearch
+    
     
     if (SearchTerm != "")
     {
@@ -125,11 +131,14 @@ Search:
         {
             SplitPath, Snip, OutFileName, OutDir, OutExtension, OutNameNoExt, OutDrive
             
-            if InStr(OutNameNoExt, SearchTerm) 
-            {   ; Extract category (folder) name
-                Stringgetpos,pos,OutDir,\,R 
-                pos+=1 
-                Stringtrimleft,DirGroup,OutDir,%pos%
+            ; Extract category (folder) name
+            Stringgetpos,pos,OutDir,\,R 
+            pos+=1 
+            Stringtrimleft,DirGroup,OutDir,%pos%
+            
+            
+            if (InStr(OutNameNoExt, SearchTerm))  || ((InStr(DirGroup, SearchTerm)) and (SnipsFolderSearch == "Y"))
+            {   
                 
                 ; Add to listview search results
                 LV_Add("",DirGroup, OutNameNoExt , k)
@@ -142,11 +151,11 @@ Search:
           LV_Add("","No Results.")  
           
         ; refresh the control 
-        LV_ModifyCol(1) ;autowidth the group
+        LV_ModifyCol()        
         LV_ModifyCol(3, 0)
+
         GuiControl, +Redraw, SR
-        
-    
+
     }
     else
     {
