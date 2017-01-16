@@ -8,11 +8,11 @@ https://github.com/ethanpil/snips
 
 ## Instructions
 
-* Activate Snips using the hotkey - Default is CTRL+` (CTRL+Backtick)
-* By default the search box is activated, so you can tyoe to search snippet titles. (File names) 
+* Activate Snips using the hotkey - Default is CTRL+` (CTRL+Backtick) [Can be changed in snips.ini]
+* On activation the search box is focused, so you can imeediately type to search snippets 
 * Hit the down arrow to activate the tree or search resuls box. Use the arrow keys to navigate 
 * Press enter or double click to copy a snippet to clipboard
-* Escape key will close Snips and return you to your previous window
+* Escape key will close Snips and return to your previous window
 * CTRL+R will refresh your list of snippets from disk
 * A tray icon is displayed, which you can use to manage Snips or terminate the program.
 
@@ -41,13 +41,13 @@ I made this because:
  * Other third party snippet tools were too bulky and resource intensive
  * It was fun
 
-
 ## Options
 
 Snips.ini the the program folder sets a few options:
 
-    folder=snips   ; The subfolder under snips.exe which contains all the snippets.
-    key=^`         ; An autohotkey code that activates the snippets window.
+    folder=snips        ; The subfolder under snips.exe which contains all the snippets.
+    key=^`              ; An autohotkey code that activates the snippets window.
+    foldernamesearch    ; Enabling to search both category/folder name and file names
 
 ## Snippet Files
 
@@ -55,7 +55,7 @@ All snippets are plain text files stored in the \snips folder under the program 
 
 ## Position the Cursor
 
-You can tell Snips to position the cursor with anoptional command code exclusively on the last line of a snippet file: <<-X   
+You can tell Snips to position the cursor after inserting the snippet with an optional command code which is placed on the last line of a snippet file: `<<-X`   
 Replace X with the number of spaces FROM THE END OF THE FILE to reverse the cursor. 
 
 For example if your snippet file contained the following code:
@@ -63,7 +63,7 @@ For example if your snippet file contained the following code:
     #include <>
     <<-2
 
-The <<-2 on the last line of the file tells snips to position the cursor 2 characters from the end of the previous line. Therefore, after the snippet is inserted, the cursor will be positioned between the brackets. <|>.
+The <<-2 on the last line of the file tells snips to position the cursor 2 characters from the end of the previous line. Therefore, after the snippet is inserted, the cursor will be positioned between the brackets. `<|>`.
 
 ## Default Snippets
 
@@ -72,7 +72,8 @@ I have included some basics to get you started. Please feel free to share any us
 ## To Do
 
 * Add CTRL+N hotlink to easily create a new snippet under a category (undecided)
-* Improve UI
+* Improve UI [Auto height, better layout & colors, theming?]
+* Add more default snippets
 
 ## Warranty and Support
 
