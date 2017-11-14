@@ -80,13 +80,29 @@ Enter:: ; Enterkey to search or send results
     }
     else if (FocusedControl = "SR")
         gosub, SearchResults
-        
+
     else if (FocusedControl = "ST")
         SnipSend(TV_GetSelection())
 return
 
 ^R::gosub, RefreshSnips
 
+^N::
+    Gui, NewSnip:New, +AlwaysOnTop -SysMenu +Owner
+    Gui, NewSnip:Add, Button, Default w0 h0 gNewSubmit,
+    Gui, NewSnip:Add, Edit, vNewSnipFileName
+    Gui, NewSnip:Show
+    GuiControl, NewSnip:Focus, NewSnipFileName
+return
+
+NewSubmit:
+    Gui, NewSnip:submit
+    NewSnipFileName := StrReplace(NewSnipFileName, "/", "\")
+    SplitPath, NewSnipFileName, , dir
+    FileCreateDir, %dir%
+    FileAppend, %Clipboard%, %NewSnipFileName%
+    Gui, NewSnip:Destroy
+return
 
 #IfWinActive
 
@@ -113,44 +129,44 @@ return
 Search:
 {
     GuiControl, 1:Hide, ST
-    
-    LV_Delete() 
+
+    LV_Delete()
     guicontrol, 1:show, SR
-    
+
     GuiControl, 1:-Redraw, SR
     GuiControlGet, SearchTerm
-    
+
     global SnipsArray
     global SnipsFolderSearch
-    
-    
+
+
     if (SearchTerm != "")
     {
         GuiControl, -Redraw, SR
         for k, Snip in SnipsArray
         {
             SplitPath, Snip, OutFileName, OutDir, OutExtension, OutNameNoExt, OutDrive
-            
+
             ; Extract category (folder) name
-            Stringgetpos,pos,OutDir,\,R 
-            pos+=1 
+            Stringgetpos,pos,OutDir,\,R
+            pos+=1
             Stringtrimleft,DirGroup,OutDir,%pos%
-            
-            
+
+
             if (InStr(OutNameNoExt, SearchTerm))  || ((InStr(DirGroup, SearchTerm)) and (SnipsFolderSearch == "Y"))
-            {   
-                
+            {
+
                 ; Add to listview search results
                 LV_Add("",DirGroup, OutNameNoExt , k)
             }
         }
-        
+
         Items := LV_GetCount()
-        
+
         if (Items == 0)
-          LV_Add("","No Results.")  
-          
-        ; refresh the control 
+          LV_Add("","No Results.")
+
+        ; refresh the control
         LV_ModifyCol()        
         LV_ModifyCol(3, 0)
 
