@@ -87,6 +87,22 @@ return
 
 ^R::gosub, RefreshSnips
 
+^N::
+    Gui, NewSnip:New, +AlwaysOnTop -SysMenu +Owner
+    Gui, NewSnip:Add, Button, Default w0 h0 gNewSubmit,
+    Gui, NewSnip:Add, Edit, vNewSnipFileName
+    Gui, NewSnip:Show
+    GuiControl, NewSnip:Focus, NewSnipFileName
+return
+
+NewSubmit:
+    Gui, NewSnip:submit
+    NewSnipFileName := StrReplace(NewSnipFileName, "/", "\")
+    SplitPath, NewSnipFileName, , dir
+    FileCreateDir, %dir%
+    FileAppend, %Clipboard%, %NewSnipFileName%
+    Gui, NewSnip:Destroy
+return
 
 #IfWinActive
 
@@ -334,6 +350,38 @@ SnipSend(snipid) {
     }
     Else
         SendInput ^v
+    Sleep 100
+    ;need sleep otherwise we paste after clipbord is reversed
+    ;meaning we paste the saved clipbord instead of the snip,
+    ;don't know why this issue popped up now.
+    global TrackNewVal ;need global var for GUI
+    WinGet trackWinId ,, A
+    while RegExMatch(Snip, "{\w+}",subPat) > 0
+    {
+        ;allow user to paste their values
+        Clipboard := ClipSaved
+
+        trackNewVal := ""
+        Gui, Tracker:New, +AlwaysOnTop -SysMenu +Owner -Caption
+        Gui, Add, Text, , %subPat%
+        Gui, Add, Edit, vTrackNewVal,
+        Gui, Show
+        input, trackNoVal, V,{tab}{enter}{escape} ;limiting user's interaction during capture, we don't use the variable
+        Gui, Tracker:Submit
+        Gui, Tracker:Destroy
+        WinActivate ahk_id %trackWinId%
+
+        if(ErrorLevel = "EndKey:Escape")
+            break
+
+        if(subPat != "")
+            Snip := StrReplace(Snip, subPat, TrackNewVal)
+
+        ClipSaved := ClipboardAll
+        Clipboard := Snip
+        SendInput ^z^v
+        Sleep 100
+    }
     ;Move the cursor if possible
     if (ReversePos1)
         SendInput {Left %ReversePos1%}    
