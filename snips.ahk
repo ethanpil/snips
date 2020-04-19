@@ -182,9 +182,11 @@ GUIEscape:
     if (!SRvisible) {
         LV_Delete()
         gui, 1:hide
+        return
     }
  
 }
+return
 
 SearchResults:
 {    
