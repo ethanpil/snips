@@ -182,11 +182,7 @@ GUIEscape:
     if (!SRvisible) {
         LV_Delete()
         gui, 1:hide
-<<<<<<< HEAD
         return
-=======
-        
->>>>>>> parent of 16b65db... Fix: ESC sometimes still sends data
     }
  
 }
@@ -357,7 +353,7 @@ SnipSend(snipid) {
 exit:
 {
    exitapp
- }
+}
 return
 
 AddSubFolderToTree(Folder, ParentItemID = 0)
