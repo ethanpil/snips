@@ -1,6 +1,6 @@
 #SingleInstance force
 
-SnipsVersion := 1.2
+SnipsVersion := 1.1
 
 ; Setup the GUI window, don't show it until data is loaded
 Gui, 1:Add, Edit, w220 hwndSearchHWND vSearchTerm gSearch
@@ -182,7 +182,11 @@ GUIEscape:
     if (!SRvisible) {
         LV_Delete()
         gui, 1:hide
+<<<<<<< HEAD
         return
+=======
+        
+>>>>>>> parent of 16b65db... Fix: ESC sometimes still sends data
     }
  
 }
@@ -316,7 +320,7 @@ SnipSend(snipid) {
     FoundPos := RegExMatch(Snip, "\n<<\-(\d*)\Z", ReversePos)
  
     if (FoundPos > 0)
-        StringTrimRight, Snip, Snip, (SnipLen - FoundPos)
+        StringTrimRight, Snip, Snip, ((SnipLen+1) - FoundPos)
  
     ; Backup Clipboard
     ClipSaved := ClipboardAll
@@ -334,16 +338,10 @@ SnipSend(snipid) {
         Sleep 50
     }
     Else
-        Send, {Control down}
-        Sleep, 50
-        Send, v
-        Sleep, 50
-        Send, {Control up}
-        
+        SendInput ^v
     ;Move the cursor if possible
     if (ReversePos1)
-        SendInput {Left %ReversePos1%}
-        SendInput {Left 1} ;one extra left (recent AHK versions hotfix)  
+        SendInput {Left %ReversePos1%}    
     
     ; Restore Clipboard
     Clipboard := ClipSaved
