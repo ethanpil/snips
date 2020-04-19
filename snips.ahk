@@ -1,6 +1,6 @@
 #SingleInstance force
 
-SnipsVersion := 1.1
+SnipsVersion := 1.2
 
 ; Setup the GUI window, don't show it until data is loaded
 Gui, 1:Add, Edit, w220 hwndSearchHWND vSearchTerm gSearch
@@ -182,7 +182,6 @@ GUIEscape:
     if (!SRvisible) {
         LV_Delete()
         gui, 1:hide
-        
     }
  
 }
@@ -315,7 +314,7 @@ SnipSend(snipid) {
     FoundPos := RegExMatch(Snip, "\n<<\-(\d*)\Z", ReversePos)
  
     if (FoundPos > 0)
-        StringTrimRight, Snip, Snip, ((SnipLen+1) - FoundPos)
+        StringTrimRight, Snip, Snip, (SnipLen - FoundPos)
  
     ; Backup Clipboard
     ClipSaved := ClipboardAll
@@ -333,10 +332,16 @@ SnipSend(snipid) {
         Sleep 50
     }
     Else
-        SendInput ^v
+        Send, {Control down}
+        Sleep, 50
+        Send, v
+        Sleep, 50
+        Send, {Control up}
+        
     ;Move the cursor if possible
     if (ReversePos1)
-        SendInput {Left %ReversePos1%}    
+        SendInput {Left %ReversePos1%}
+        SendInput {Left 1} ;one extra left (recent AHK versions hotfix)  
     
     ; Restore Clipboard
     Clipboard := ClipSaved

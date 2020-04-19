@@ -1,0 +1,5 @@
+if (strpos('My name is David.', 'David') !== false) {
+	// String contains David
+	
+}
+<<-2
