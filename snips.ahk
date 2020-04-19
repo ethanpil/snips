@@ -233,7 +233,7 @@ https://github.com/ethanpil/snips
 
 ---Instructions---
 * Activate Snips using the hotkey (Default is CTRL+Backtick)
-* By default the search box is activated, so you can tyoe to search snippet titles. (File names) 
+* Search box is active by default so you can instantly type to search snippets. (File names) 
 * Hit the down arrow to activate the tree or search resuls box. Use the arrow keys to navigate 
 * Press enter or double click to copy a snippet to clipboard
 * Escape key will close Snips and return you to your previous window
