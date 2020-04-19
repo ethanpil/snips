@@ -338,7 +338,12 @@ SnipSend(snipid) {
         Sleep 50
     }
     Else
-        SendInput ^v
+        Send, {Control down}
+        Sleep, 50
+        Send, v
+        Sleep, 50
+        Send, {Control up}
+        
     ;Move the cursor if possible
     if (ReversePos1)
         SendInput {Left %ReversePos1%}    
