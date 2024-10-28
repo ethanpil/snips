@@ -1,4 +1,4 @@
-# Snips v1.1
+# Snips
 A simple way to store and use text snippets in any windows program.
 https://github.com/ethanpil/snips
 
