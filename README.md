@@ -21,13 +21,23 @@ All snippets are plain text files stored in the \snips folder under the program 
 ### History
 
 ````
-    v1.1    Added support for cmd.exe
-            Added some additional default snippets
-            Improved paste speed
-            Improved cursor movement speed
-            Added category name to search. (Example: type 'html' to see all \html snippets)
+    v1.2    Apr 18, 2020
+            New: Minor changes to about screen text
+            New: Add some new simple PHP snips
+            Fix #3 : ESC sometimes still sends data
+            Fix: Recent AHK versions require extra left for cursor move [Internal]
+            Fix: Slow down paste keys to improve compatibility with some apps
+            Fix: Codespacing and indents [Internal]
 
-    v1.0    Initial Release
+    v1.1    Jan 15, 2017
+            New: Added support for cmd.exe
+            New: Added some additional default snippets
+            New: Added category name to search. (Example: type 'html' to see all \html snippets)
+            Fix: Improved paste speed
+            Fix: Improved cursor movement speed  
+
+    v1.0    Jan 12, 2017
+            Initial Release
 
 ````
 
@@ -74,6 +84,8 @@ I have included some basics to get you started. Please feel free to share any us
 * Add CTRL+N hotlink to easily create a new snippet under a category (undecided)
 * Improve UI [Auto height, better layout & colors, theming?]
 * Add more default snippets
+* Rewrite for AHK v2
+* Request: Option to show window at cursor location instead of center screen [Tenavin@Reddit](https://www.reddit.com/r/AutoHotkey/comments/5nmzdt/show_off_i_made_a_cool_snippets_manager_with_ahk/j52ogtf/)
 
 ## Warranty and Support
 
