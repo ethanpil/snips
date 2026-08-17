@@ -3,7 +3,7 @@
 #SingleInstance force
 SetBatchLines, -1
 
-SnipsVersion := 1.2
+SnipsVersion := "1.21"
 
 ; Setup the GUI window, don't show it until data is loaded
 Gui, 1:+HwndSnipsHwnd
@@ -235,42 +235,43 @@ about:
       about_txt =
 (
 ---Snips %SnipsVersion%---
-A simple way to store and use text snippets in any windows program.
+A simple tool to store text snippets and to paste them into any Windows program.
 https://github.com/ethanpil/snips
 
 ---Instructions---
-* Activate Snips using the hotkey (Default is CTRL+Backtick)
-* Search box is active by default so you can instantly type to search snippets. (File names) 
-* Hit the down arrow to activate the tree or search resuls box. Use the arrow keys to navigate 
-* Press enter or double click to copy a snippet to clipboard
-* Escape key will close Snips and return you to your previous window
-* CTRL+R will refresh your list of snippets from disk
-* A tray icon is displayed, which you can use to manage Snips or terminate the program.
+* Press the hotkey to open Snips. The default hotkey is CTRL+Backtick.
+* Type in the search box to search the snippet names.
+* Press the down arrow to move to the tree or to the search results. Use the arrow keys to navigate.
+* Press Enter or double-click a snippet to paste it into your previous window.
+* Press Escape to close Snips and go back to your previous window.
+* Press CTRL+R to load the snippet list from disk again.
+* Use the tray icon to open, refresh, or stop Snips.
 
-All snippets are plain text files stored in the \snips folder under the program binary. One snippet per file. 
+All snippets are plain text files in the \snips folder in the program folder. Each file contains one snippet.
 
 ---Options---
-Snips.ini the the program folder sets a few options:
+The file snips.ini in the program folder sets these options:
 
-    folder=snips   ; The subfolder under snips.exe which contains all the snippets.
-    key=^`         ; An autohotkey code that activates the snippets window.
+    folder             The folder that contains the snippet files. Default: snips
+    key                The hotkey that opens Snips. Default: ^`` (CTRL+Backtick)
+    foldernamesearch   Set to Y to also search the folder names. Default: Y
 
 ---Snippet Files---
-All snippets are plain text files stored in the \snips folder under the program binary. One snippet per file. Edit the contents of the \snips folder in the program root to modify your collection. The tree view will mirror your folder structure. Filenames are the Snippet titles displayed in search and tree.
+All snippets are plain text files in the \snips folder in the program folder. Each file contains one snippet. Edit the files in the \snips folder to change your collection. The tree shows your folder structure. The file names are the snippet titles in the search and in the tree. Save files as UTF-8 with BOM when they contain special characters.
 
 ---Position the Cursor---
-You can tell Snips to position the cursor with anoptional command code exclusively on the last line of a snippet file: <<-X   
-Replace X with the number of spaces FROM THE END OF THE FILE to reverse the cursor. 
+Snips can position the cursor after it pastes a snippet. Write the command code <<-X alone on the last line of the snippet file.
+Replace X with the number of characters between the cursor position and the end of the snippet.
 
-For example if your snippet file contained the following code:
+Example snippet file:
 
     #include <>
     <<-2
 
-The <<-2 on the last line of the file tells snips to position the cursor 2 characters from the end of the previous line. Therefore, after the snippet is inserted, the cursor will be positioned between the brackets. <|>.
+The code <<-2 tells Snips to move the cursor 2 characters back from the end of the pasted text. After the paste, the cursor is between the brackets: <|>.
 
 ---Thanks---
-Autohotkey developers and forums.
+AutoHotkey developers and forums.
 
 ---License and Copyright---
 Copyright (C) Ethan Piliavin

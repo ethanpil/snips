@@ -1,5 +1,5 @@
 # Snips
-A simple way to store and use text snippets in any windows program.
+A simple tool to store text snippets and to paste them into any Windows program.
 https://github.com/ethanpil/snips
 
 [Download Binary](https://github.com/ethanpil/snips/releases)
@@ -8,38 +8,21 @@ https://github.com/ethanpil/snips
 
 ## Instructions
 
-* Activate Snips using the hotkey - Default is CTRL+` (CTRL+Backtick) [Can be changed in snips.ini]
-* On activation the search box is focused, so you can imeediately type to search snippets 
-* Hit the down arrow to activate the tree or search resuls box. Use the arrow keys to navigate 
-* Press enter or double click to copy a snippet to clipboard
-* Escape key will close Snips and return to your previous window
-* CTRL+R will refresh your list of snippets from disk
-* A tray icon is displayed, which you can use to manage Snips or terminate the program.
+* Press the hotkey to open Snips. The default hotkey is CTRL+\` (CTRL+Backtick). You can change the hotkey in snips.ini.
+* The search box has the focus when Snips opens. Type to search the snippet names.
+* Press the down arrow to move to the tree or to the search results. Use the arrow keys to navigate.
+* Press Enter or double-click a snippet to paste it into your previous window.
+* Press Escape to close Snips and go back to your previous window.
+* Press CTRL+R to load the snippet list from disk again.
+* Use the tray icon to open, refresh, or stop Snips.
 
-All snippets are plain text files stored in the \snips folder under the program binary. One snippet per file. 
+All snippets are plain text files in the \snips folder in the program folder. Each file contains one snippet.
 
-### History
+To run snips.ahk you need [AutoHotkey](https://www.autohotkey.com/) v1.1. The compiled snips.exe does not need AutoHotkey.
 
-````
-    v1.2    Apr 18, 2020
-            New: Minor changes to about screen text
-            New: Add some new simple PHP snips
-            Fix #3 : ESC sometimes still sends data
-            Fix: Recent AHK versions require extra left for cursor move [Internal]
-            Fix: Slow down paste keys to improve compatibility with some apps
-            Fix: Codespacing and indents [Internal]
+## Changelog
 
-    v1.1    Jan 15, 2017
-            New: Added support for cmd.exe
-            New: Added some additional default snippets
-            New: Added category name to search. (Example: type 'html' to see all \html snippets)
-            Fix: Improved paste speed
-            Fix: Improved cursor movement speed  
-
-    v1.0    Jan 12, 2017
-            Initial Release
-
-````
+See [CHANGELOG.md](CHANGELOG.md) for the version history.
 
 ## Why
 
@@ -53,27 +36,32 @@ I made this because:
 
 ## Options
 
-Snips.ini the the program folder sets a few options:
+The file snips.ini in the program folder sets these options:
 
-    folder=snips        ; The subfolder under snips.exe which contains all the snippets.
-    key=^`              ; An autohotkey code that activates the snippets window.
-    foldernamesearch    ; Enabling to search both category/folder name and file names
+| Option | Function | Default |
+| --- | --- | --- |
+| folder | The folder that contains the snippet files. | snips |
+| key | The [hotkey](https://www.autohotkey.com/docs/v1/Hotkeys.htm#Symbols) that opens Snips. | ^\` (CTRL+Backtick) |
+| foldernamesearch | Set to Y to also search the folder names. A match on a folder name shows all snippets of that folder. | Y |
+
+Write comments in snips.ini on their own lines. Start each comment line with a semicolon.
 
 ## Snippet Files
 
-All snippets are plain text files stored in the \snips folder under the program binary. One snippet per file. Edit the contents of the \snips folder in the program root to modify your collection. The tree view will mirror your folder structure. Filenames are the Snippet titles displayed in search and tree.
+All snippets are plain text files in the \snips folder in the program folder. Each file contains one snippet. Edit the files in the \snips folder to change your collection. The tree view shows your folder structure. The file names are the snippet titles in the search and in the tree.
+
+Save snippet files as UTF-8 with BOM when they contain special characters.
 
 ## Position the Cursor
 
-You can tell Snips to position the cursor after inserting the snippet with an optional command code which is placed on the last line of a snippet file: `<<-X`   
-Replace X with the number of spaces FROM THE END OF THE FILE to reverse the cursor. 
+Snips can position the cursor after it pastes a snippet. Write the command code `<<-X` alone on the last line of the snippet file. Replace X with the number of characters between the cursor position and the end of the snippet.
 
-For example if your snippet file contained the following code:
+Example snippet file:
 
     #include <>
     <<-2
 
-The <<-2 on the last line of the file tells snips to position the cursor 2 characters from the end of the previous line. Therefore, after the snippet is inserted, the cursor will be positioned between the brackets. `<|>`.
+The code `<<-2` tells Snips to move the cursor 2 characters back from the end of the pasted text. After the paste, the cursor is between the brackets: `<|>`.
 
 ## Default Snippets
 
@@ -81,7 +69,7 @@ I have included some basics to get you started. Please feel free to share any us
 
 ## To Do
 
-* Add CTRL+N hotlink to easily create a new snippet under a category (undecided)
+* Add CTRL+N hotkey to easily create a new snippet under a category (undecided)
 * Improve UI [Auto height, better layout & colors, theming?]
 * Add more default snippets
 * Rewrite for AHK v2
@@ -93,7 +81,7 @@ None provided. Good luck. Source code is available on GitHub.
 
 ## Thanks
 
-[AutoHotKey](https://autohotkey.com/) developers and forums.
+[AutoHotkey](https://autohotkey.com/) developers and forums.
 
 ## License and Copyright
 Copyright (C) Ethan Piliavin
