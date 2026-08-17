@@ -3,6 +3,7 @@
 SnipsVersion := 1.2
 
 ; Setup the GUI window, don't show it until data is loaded
+Gui, 1:+HwndSnipsHwnd
 Gui, 1:Add, Edit, w220 hwndSearchHWND vSearchTerm gSearch
 Gui, 1:Add, TreeView, x10 y35 w220 r21 hwndTreeHWND vST gSnipsTree
 Gui, 1:Add, ListView, x10 y35 w220 r19 -Multi +grid -hdr hwndListHWND vSR gSearchResults, Folder|Match|ID
@@ -37,7 +38,7 @@ menu, tray, add, Exit, exit
 return
 
 
-#IfWinActive Snips 
+#If WinActive("ahk_id " SnipsHwnd)
 Down:: ; Use down arrow to move focus to tree or search results
     GuiControlGet, FocusedControl, focusV
     GuiControlGet, SRvisible, Visible, SR
@@ -88,7 +89,7 @@ return
 ^R::gosub, RefreshSnips
 
 
-#IfWinActive
+#If
 
 RefreshSnips:
 {
@@ -209,9 +210,10 @@ return
 view:
 {
     global active_id
-    WinGet, active_id, ID, A ;Save the currently active window
+    if (!WinActive("ahk_id " SnipsHwnd))
+        WinGet, active_id, ID, A ;Save the currently active window
     gui, 1:show, w240 h350 Center, Snips
-    WinSet, AlwaysOnTop, on, Snips
+    WinSet, AlwaysOnTop, on, ahk_id %SnipsHwnd%
     GuiControl, Focus, SearchTerm
 }
 return
