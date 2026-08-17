@@ -7,10 +7,9 @@ Gui, 1:+HwndSnipsHwnd
 Gui, 1:Add, Edit, w220 hwndSearchHWND vSearchTerm gSearch
 Gui, 1:Add, TreeView, x10 y35 w220 r21 hwndTreeHWND vST gSnipsTree
 Gui, 1:Add, ListView, x10 y35 w220 r19 -Multi +grid -hdr hwndListHWND vSR gSearchResults, Folder|Match|ID
-Gui, Add, Button, Hidden Default, OK
-LV_ModifyCol(1, 60),
-LV_ModifyCol(2, 140),
-LV_ModifyCol(3, 0), ; Hide array key
+LV_ModifyCol(1, 60)
+LV_ModifyCol(2, 140)
+LV_ModifyCol(3, 0) ; Hide array key
 GuiControl, 1:Hide, SR
 
 ; Refresh the list of snippets prior to GUI display
@@ -138,7 +137,7 @@ Search:
             Stringtrimleft,DirGroup,OutDir,%pos%
             
             
-            if (InStr(OutNameNoExt, SearchTerm))  || ((InStr(DirGroup, SearchTerm)) and (SnipsFolderSearch == "Y"))
+            if (InStr(OutNameNoExt, SearchTerm))  || ((InStr(DirGroup, SearchTerm)) and (SnipsFolderSearch = "Y"))
             {   
                 
                 ; Add to listview search results
@@ -173,8 +172,6 @@ GUIEscape:
     ; If a search was performed clear the search instead of closing the window
     GuiControlGet, SRvisible, Visible, SR
     
-    ; Clear the windows status
-    ControlSetText, Search, ""
     guicontrol, , SearchTerm,
     guicontrol, 1:hide, SR
     guicontrol, 1:show, ST
@@ -190,20 +187,23 @@ GUIEscape:
 return
 
 SearchResults:
-{    
+{
+    RetrievedText := ""
 
-    if (A_GuiControlEvent == "DoubleClick")  
-        LV_GetText(RetrievedText, A_EventInfo, 3) 
-                
-    else {     
-        RowNumber := FocusedRowNumber := LV_GetNext(0, "F") 
-        
+    if (A_GuiControlEvent == "DoubleClick")
+        LV_GetText(RetrievedText, A_EventInfo, 3)
+
+    ; An empty event means the call comes from the Enter hotkey
+    else if (A_GuiControlEvent == "")
+    {
+        RowNumber := LV_GetNext(0, "F")
+
         if RowNumber
             LV_GetText(RetrievedText, RowNumber, 3)
-     }
-      
-      if RetrievedText
-         SnipSend(RetrievedText)
+    }
+
+    if RetrievedText
+        SnipSend(RetrievedText)
 }
 return
 
@@ -271,16 +271,18 @@ Released under the GPLv3 license, included as license.txt
       gui, 5:add, button, default x450 y375 w60 h20 g5guiclose, OK
       gui, 5:add, edit, +readonly vscroll x10 y10 w500 h360, %about_txt%
       gui, 5:show, center w520 h400, About Snips
-      about_gui = "1"
+      about_gui := "1"
     }
 }
 return
 
-5guiclose:
+5GuiClose:
+5GuiEscape:
  {
    gui, 5:destroy
    about_gui := "0"
  }
+return
 
 SnipsTree:
  {
