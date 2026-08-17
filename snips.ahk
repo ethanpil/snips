@@ -313,7 +313,7 @@ SnipSend(snipid) {
     
     ;Position cursor if data is there
     SnipLen := StrLen(Snip)
-    FoundPos := RegExMatch(Snip, "\n<<\-(\d*)\Z", ReversePos)
+    FoundPos := RegExMatch(Snip, "\n<<\-(\d*)\s*\Z", ReversePos)
  
     if (FoundPos > 0)
         StringTrimRight, Snip, Snip, (SnipLen - FoundPos)
@@ -334,16 +334,20 @@ SnipSend(snipid) {
         Sleep 50
     }
     Else
+    {
         Send, {Control down}
         Sleep, 50
         Send, v
         Sleep, 50
         Send, {Control up}
+    }
         
     ;Move the cursor if possible
     if (ReversePos1)
+    {
         SendInput {Left %ReversePos1%}
-        SendInput {Left 1} ;one extra left (recent AHK versions hotfix)  
+        SendInput {Left 1} ;one extra left (recent AHK versions hotfix)
+    }
     
     ; Restore Clipboard
     Clipboard := ClipSaved
