@@ -288,14 +288,25 @@ SnipsTree:
 return
 
 SnipSend(snipid) {
-    
+
+    global SnipsArray
+    global active_id
+
+    ; Ignore folders and tree items that have no file
+    if (!SnipsArray.HasKey(snipid))
+        return
+
+    ; Read the snippet file. Stop if the file is empty.
+    FileRead, Snip, % SnipsArray[snipid]
+    if (Snip = "")
+        return
+
     ;Hide the GUI
     gui, 1:hide
-    ControlSetText, Search, ""
     guicontrol, , SearchTerm,
     guicontrol, 1:hide, SR
-    guicontrol, 1:show, ST    
-        
+    guicontrol, 1:show, ST
+
     ;Reset the tree
     GuiControl, -Redraw, ST
     ItemID = 0  ; Causes the loop's first iteration to start the search at the top of the tree.
@@ -308,9 +319,6 @@ SnipSend(snipid) {
     }
     GuiControl, +Redraw, ST        
         
-    global SnipsArray
-    FileRead, Snip, % SnipsArray[snipid]
-    
     ;Position cursor if data is there
     SnipLen := StrLen(Snip)
     FoundPos := RegExMatch(Snip, "\n<<\-(\d*)\s*\Z", ReversePos)
@@ -323,7 +331,14 @@ SnipSend(snipid) {
     
     ; Send the Snip to clipboard and paste
     Clipboard := Snip
-    ClipWait
+    ClipWait, 1
+    if (ErrorLevel)
+    {
+        ; The clipboard did not get the data. Restore the clipboard and stop.
+        Clipboard := ClipSaved
+        ClipSaved := ""
+        return
+    }
     WinActivate, ahk_id %active_id%
     Sleep, 300
     
@@ -349,8 +364,10 @@ SnipSend(snipid) {
         SendInput {Left 1} ;one extra left (recent AHK versions hotfix)
     }
     
-    ; Restore Clipboard
+    ; Wait for the target program to complete the paste. Then restore the clipboard.
+    Sleep, 300
     Clipboard := ClipSaved
+    ClipSaved := ""
 
 }
 
