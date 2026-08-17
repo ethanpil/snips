@@ -1,4 +1,7 @@
+#Requires AutoHotkey v1.1
+#NoEnv
 #SingleInstance force
+SetBatchLines, -1
 
 SnipsVersion := 1.2
 
@@ -15,12 +18,18 @@ GuiControl, 1:Hide, SR
 ; Refresh the list of snippets prior to GUI display
 gosub, RefreshSnips
 
-; Activate user configured hotkey
-IniRead, SnipsActivate, %A_ScriptDir%\snips.ini, snips, key
-Hotkey, %SnipsActivate%, view
+; Activate the hotkey from snips.ini. Use the default when the value is not valid.
+IniRead, SnipsActivate, %A_ScriptDir%\snips.ini, snips, key, ^``
+Hotkey, %SnipsActivate%, view, UseErrorLevel
+if (ErrorLevel)
+{
+    Hotkey, ^``, view
+    TrayTip, Snips, The hotkey in snips.ini is not valid. Snips uses CTRL+Backtick.
+    SetTimer, RemoveTrayTip, 4000
+}
 
 ;Load other ini settings into memory
-IniRead, SnipsFolderSearch, %A_ScriptDir%\snips.ini, snips, foldernamesearch
+IniRead, SnipsFolderSearch, %A_ScriptDir%\snips.ini, snips, foldernamesearch, Y
 
 ; Add the tray icon and menu
 ;menu, tray, Icon, %A_ScriptDir%\snips.ico, , 1 ;Not needed when compiled with AHK2EXE
@@ -94,7 +103,7 @@ RefreshSnips:
 {
     global SnipsArray
     SnipsArray := Object()
-    IniRead, SnipsPath, %A_ScriptDir%\snips.ini, snips, folder
+    IniRead, SnipsPath, %A_ScriptDir%\snips.ini, snips, folder, snips
     SetWorkingDir, %A_ScriptDir%\%SnipsPath%
     TV_Delete()
     AddSubFolderToTree(A_WorkingDir)
