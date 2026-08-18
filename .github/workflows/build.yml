@@ -1,0 +1,104 @@
+name: Build
+
+on:
+  push:
+    branches: [master]
+    tags: ['[0-9]*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  # Keep these versions fixed, so that each build gives the same result.
+  AHK_VERSION: 2.0.26
+  AHK2EXE_VERSION: Ahk2Exe1.1.37.02a2
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Get the source
+        uses: actions/checkout@v4
+
+      - name: Get AutoHotkey v2
+        shell: pwsh
+        run: |
+          $url = "https://www.autohotkey.com/download/2.0/AutoHotkey_$env:AHK_VERSION.zip"
+          Invoke-WebRequest -Uri $url -OutFile ahk.zip -UseBasicParsing
+          Expand-Archive -Path ahk.zip -DestinationPath tools\ahk -Force
+
+      - name: Get the compiler
+        shell: pwsh
+        run: |
+          $url = "https://github.com/AutoHotkey/Ahk2Exe/releases/download/$env:AHK2EXE_VERSION/$env:AHK2EXE_VERSION.zip"
+          Invoke-WebRequest -Uri $url -OutFile ahk2exe.zip -UseBasicParsing
+          Expand-Archive -Path ahk2exe.zip -DestinationPath tools\ahk2exe -Force
+
+      - name: Check the syntax of the script
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath tools\ahk\AutoHotkey64.exe `
+            -ArgumentList '/validate', '/ErrorStdOut', 'snips.ahk' `
+            -Wait -PassThru -NoNewWindow
+          if ($p.ExitCode -ne 0) { throw "snips.ahk has a syntax error." }
+          Write-Output "The syntax is correct."
+
+      - name: Make snips.exe
+        shell: pwsh
+        run: |
+          & tools\ahk2exe\Ahk2Exe.exe /in snips.ahk /out snips.exe `
+            /base tools\ahk\AutoHotkey64.exe /icon snips.ico /silent
+          if (-not (Test-Path snips.exe)) { throw "The compiler made no file." }
+          "snips.exe is {0} bytes." -f (Get-Item snips.exe).Length
+
+      - name: Make the package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force package | Out-Null
+          Copy-Item snips.exe, snips.ini, README.md, CHANGELOG.md, license.txt package
+          Copy-Item snips -Destination package\snips -Recurse
+          Compress-Archive -Path package\* -DestinationPath snips.zip -Force
+
+      - name: Keep the package with the build
+        uses: actions/upload-artifact@v4
+        with:
+          name: snips
+          path: package/
+
+      - name: Read the release notes from the changelog
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          $lines = Get-Content CHANGELOG.md
+          $start = -1
+          for ($i = 0; $i -lt $lines.Count; $i++) {
+            if ($lines[$i] -match ("^## \[" + [regex]::Escape($tag) + "\]")) { $start = $i + 1; break }
+          }
+          if ($start -lt 0) {
+            $notes = "See CHANGELOG.md for the list of changes."
+          } else {
+            $end = $lines.Count
+            for ($j = $start; $j -lt $lines.Count; $j++) {
+              if ($lines[$j] -match '^## \[') { $end = $j; break }
+            }
+            $notes = ($lines[$start..($end - 1)] -join "`n").Trim()
+          }
+          $notes += "`n`n**Download**`n"
+          $notes += "- snips.zip - the program, the settings, and the default snippets.`n"
+          $notes += "- snips.exe - the program alone. AutoHotkey is not necessary.`n"
+          Set-Content -Path release-notes.md -Value $notes -Encoding utf8
+
+      - name: Make the release
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create $env:GITHUB_REF_NAME `
+            --title "Snips $env:GITHUB_REF_NAME" `
+            --notes-file release-notes.md `
+            snips.exe snips.zip
