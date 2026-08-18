@@ -11,6 +11,10 @@ SnipsVersion := "2.0"
 ; Read a snippet file as UTF-8 when the file has no byte order mark
 A_FileEncoding := "UTF-8"
 
+; The caret and the mouse must give screen positions, not window positions
+CoordMode("Caret", "Screen")
+CoordMode("Mouse", "Screen")
+
 ; Limits that keep a bad folder setting from stopping the program
 MaxFolderDepth := 12
 MaxSnippets := 5000
@@ -31,6 +35,8 @@ FolderArray := Map()
 ; The settings. RefreshSnips reads them again on each refresh.
 SnipsFolder := ""
 SnipsFolderSearch := "Y"
+AutoRefresh := "Y"
+WindowPlacement := "center"
 
 ; The window that Snips pastes into
 ActiveWindowId := 0
@@ -41,7 +47,7 @@ AboutWin := ""
 ; True when the results list holds snippets and not the "No Results." row
 HasMatches := false
 
-; The condition of the snippet folder at the last refresh
+; The times of the snippet folders at the last refresh
 FolderState := ""
 
 ; The process id of this program. Snips must not paste into its own windows.
@@ -113,7 +119,7 @@ TrayMenu.Add("Snips v" SnipsVersion, ShowAbout)
 TrayMenu.Add()
 TrayMenu.Add("Open", ShowSnips)
 TrayMenu.Add("Refresh", (*) => RefreshSnips())
-TrayMenu.Add("Open Snippets Folder", OpenSnippetsFolder)
+TrayMenu.Add("Open Snippets Folder", (*) => OpenFile(SnipsFolder))
 TrayMenu.Add("About/Help", ShowAbout)
 TrayMenu.Add()
 TrayMenu.Add("Exit", (*) => ExitApp())
@@ -140,7 +146,9 @@ ReadSetting(Key, Default)
 ; starts at the program folder, and also a full path such as D:\Snippets.
 ResolveFolder(Path)
 {
-    if (RegExMatch(Path, "^[A-Za-z]:[\\/]") || SubStr(Path, 1, 2) = "\\")
+    ; A path with a drive letter, a path from the root of the drive, or a
+    ; network path
+    if (RegExMatch(Path, "^[A-Za-z]:[\\/]") || SubStr(Path, 1, 1) = "\" || SubStr(Path, 1, 1) = "/")
         return Path
 
     return A_ScriptDir "\" Path
@@ -152,7 +160,8 @@ ResolveFolder(Path)
 
 RefreshSnips(ShowMessage := true)
 {
-    global SnipsArray, FolderArray, SnipsFolder, SnipsFolderSearch, FolderState
+    global SnipsArray, FolderArray, SnipsFolder, SnipsFolderSearch
+    global AutoRefresh, WindowPlacement, FolderState
     static Busy := false
 
     ; Two refreshes at the same time can put the tree and the Map out of step
@@ -166,9 +175,13 @@ RefreshSnips(ShowMessage := true)
         ; Read the settings again, so that an edit of snips.ini takes effect
         SnipsFolder := ResolveFolder(ReadSetting("folder", "snips"))
         SnipsFolderSearch := ReadSetting("foldernamesearch", "Y")
+        AutoRefresh := ReadSetting("autorefresh", "Y")
+        WindowPlacement := ReadSetting("position", "center")
 
         if (!DirExist(SnipsFolder))
         {
+            ; An empty state stops Snips from a refresh on each window open
+            FolderState := ""
             Notify("Snips cannot find the snippet folder: " SnipsFolder)
             return
         }
@@ -235,26 +248,33 @@ AddSubFolderToTree(Snips, Folders, Folder, ParentItemId := 0, Depth := 1)
     }
 }
 
-; Make a short text that changes when a snippet file changes. Snips compares
-; the text to find out if it must read the folder again.
+; Make a text from the times of all snippet folders. The time of a folder
+; changes when a file in it is added, removed, or renamed. That is what the
+; snippet list shows. Snips reads the text of a file only when it sends it.
+; An empty result means that Snips cannot read the folder now.
 ReadFolderState()
 {
-    State := ""
-
     try
-    {
-        State := FileGetTime(SnipsFolder, "M")
-
-        Loop Files, SnipsFolder "\*.*", "DR"
-        {
-            if (InStr(A_LoopFileAttrib, "L"))
-                continue
-
-            State .= A_LoopFileTimeModified
-        }
-    }
+        return FolderTimes(SnipsFolder, 1)
     catch
         return ""
+}
+
+FolderTimes(Folder, Depth)
+{
+    if (Depth > MaxFolderDepth)
+        return ""
+
+    State := FileGetTime(Folder, "M")
+
+    ; The recursion is manual, so that Snips can stop at a junction
+    Loop Files, Folder "\*.*", "D"
+    {
+        if (InStr(A_LoopFileAttrib, "L"))
+            continue
+
+        State .= FolderTimes(A_LoopFileFullPath, Depth + 1)
+    }
 
     return State
 }
@@ -262,11 +282,15 @@ ReadFolderState()
 ; Read the folder again when a snippet file changed since the last refresh
 RefreshWhenChanged()
 {
-    if (ReadSetting("autorefresh", "Y") != "Y")
+    if (AutoRefresh != "Y")
         return
 
-    if (FolderState != "" && ReadFolderState() != FolderState)
-        RefreshSnips(false)
+    State := ReadFolderState()
+
+    if (State = "" || State = FolderState)
+        return
+
+    RefreshSnips(false)
 }
 
 ; ---------------------------------------------------------------------------
@@ -387,14 +411,16 @@ NavigateDown(*)
 ; CTRL+Enter copies the snippet to the clipboard in place of a paste.
 NavigateEnter(CopyOnly)
 {
-    Focused := FocusedControl()
-
-    if (Focused = SearchBox)
+    if (FocusedControl() = SearchBox)
     {
-        if (Results.Visible)
-            FocusResults()
+        if (!Results.Visible)
+            return
 
-        return
+        ; Move to the first result. CTRL+Enter also copies it immediately.
+        FocusResults()
+
+        if (!CopyOnly)
+            return
     }
 
     SnipSend(SelectedSnipId(), CopyOnly)
@@ -406,13 +432,13 @@ SendResult(Row)
         SnipSend(Results.GetText(Row, 3))
 }
 
-; Return the id of the snippet that the user selected in the tree or in the
-; results list
+; Return the id of the snippet that the user selected. The results list is in
+; front during a search, and the tree is in front at other times.
 SelectedSnipId()
 {
-    if (FocusedControl() = Results)
+    if (Results.Visible)
     {
-        if (Row := Results.GetNext(0, "F"))
+        if (HasMatches && (Row := Results.GetNext(0, "F")))
             return Results.GetText(Row, 3)
 
         return 0
@@ -421,26 +447,35 @@ SelectedSnipId()
     return Tree.GetSelection()
 }
 
+; Return the file of a snippet id, or an empty string when the id is a folder
+; or is not in the list
+SnippetPath(SnipId)
+{
+    if (!IsInteger(SnipId))
+        return ""
+
+    SnipId := Integer(SnipId)
+
+    return SnipsArray.Has(SnipId) ? SnipsArray[SnipId].Path : ""
+}
+
 ; ---------------------------------------------------------------------------
 ; Make and change snippets
 ; ---------------------------------------------------------------------------
 
-; Return the folder of the selected item. A snippet gives its own folder.
+; Return the folder of the selected snippet, or of the selected folder
 SelectedFolder()
 {
+    if (Path := SnippetPath(SelectedSnipId()))
+    {
+        SplitPath(Path, , &Dir)
+        return Dir
+    }
+
     Item := Tree.GetSelection()
 
-    if (Item)
-    {
-        if (FolderArray.Has(Item))
-            return FolderArray[Item]
-
-        if (SnipsArray.Has(Item))
-        {
-            SplitPath(SnipsArray[Item].Path, , &Dir)
-            return Dir
-        }
-    }
+    if (Item && FolderArray.Has(Item))
+        return FolderArray[Item]
 
     return SnipsFolder
 }
@@ -448,9 +483,10 @@ SelectedFolder()
 NewSnippet(*)
 {
     Folder := SelectedFolder()
-    SnipsGui.Hide()
+    HideSnips()
 
-    Answer := InputBox("Type the name of the new snippet.`nSnips makes the file in:`n" Folder, "New Snippet", "w320 h150")
+    Answer := InputBox("Type the name of the new snippet.`nSnips makes the file in:`n" Folder
+        , "New Snippet", "w320 h150")
 
     if (Answer.Result != "OK")
         return
@@ -463,6 +499,13 @@ NewSnippet(*)
     if (RegExMatch(Name, "[\\/:*?`"<>|]"))
     {
         Notify("A file name cannot contain a quote mark or these characters: \ / : * ? < > |")
+        return
+    }
+
+    ; Windows keeps some names for devices
+    if (RegExMatch(Name, "i)^(CON|PRN|AUX|NUL|COM[0-9]|LPT[0-9])(\.|$)"))
+    {
+        Notify("Windows keeps the name " Name " for a device. Use a different name.")
         return
     }
 
@@ -488,18 +531,13 @@ NewSnippet(*)
 
 EditSnippet(*)
 {
-    SnipId := SelectedSnipId()
+    Path := SnippetPath(SelectedSnipId())
 
-    if (!IsInteger(SnipId) || !SnipsArray.Has(Integer(SnipId)))
+    if (Path = "")
         return
 
     HideSnips()
-    OpenFile(SnipsArray[Integer(SnipId)].Path)
-}
-
-OpenSnippetsFolder(*)
-{
-    OpenFile(SnipsFolder)
+    OpenFile(Path)
 }
 
 ; Open a file or a folder with the program that Windows uses for it
@@ -548,12 +586,29 @@ ShowSnips(*)
 
     RefreshWhenChanged()
 
-    Spot := WindowPosition()
+    ; Make the window, but keep it hidden. Snips can then measure it and put it
+    ; in position before the user sees it.
+    SnipsGui.Show("Hide w" WindowWidth " h" WindowHeight)
+
+    Spot := ""
+
+    try
+    {
+        WinGetPos( , , &ActualWidth, &ActualHeight, "ahk_id " SnipsGui.Hwnd)
+        Spot := WindowPosition(ActualWidth, ActualHeight)
+    }
+    catch
+        Spot := ""
 
     if (Spot)
-        SnipsGui.Show("w" WindowWidth " h" WindowHeight " x" Spot.X " y" Spot.Y)
+    {
+        ; WinMove uses screen pixels. Gui.Show would change the numbers for the
+        ; screen DPI.
+        WinMove(Spot.X, Spot.Y, , , "ahk_id " SnipsGui.Hwnd)
+        SnipsGui.Show()
+    }
     else
-        SnipsGui.Show("w" WindowWidth " h" WindowHeight " Center")
+        SnipsGui.Show("Center")
 
     ; Show the window in front of other windows that are always on top
     SnipsGui.Opt("+AlwaysOnTop")
@@ -561,16 +616,16 @@ ShowSnips(*)
 }
 
 ; Find the position for the window. An empty result puts the window in the
-; centre of the screen.
-WindowPosition()
+; center of the screen.
+WindowPosition(Width, Height)
 {
-    Mode := ReadSetting("position", "center")
+    Mode := WindowPlacement
 
     if (Mode = "caret")
     {
         ; The text cursor position. Some programs do not give it.
         if (CaretGetPos(&CaretX, &CaretY))
-            return KeepOnScreen(CaretX, CaretY + 20)
+            return KeepOnScreen(CaretX, CaretY + 20, Width, Height)
 
         ; Use the mouse when the program does not give a text cursor
         Mode := "mouse"
@@ -579,33 +634,43 @@ WindowPosition()
     if (Mode = "mouse")
     {
         MouseGetPos(&MouseX, &MouseY)
-        return KeepOnScreen(MouseX, MouseY)
+        return KeepOnScreen(MouseX, MouseY, Width, Height)
     }
 
     return ""
 }
 
-; Move the position so that the full window stays on the screen
-KeepOnScreen(X, Y)
+; Move the position so that the full window stays on one screen
+KeepOnScreen(X, Y, Width, Height)
 {
-    Found := false
-
-    Loop MonitorGetCount()
+    try
     {
-        MonitorGetWorkArea(A_Index, &Left, &Top, &Right, &Bottom)
+        Found := false
 
-        if (X >= Left && X < Right && Y >= Top && Y < Bottom)
+        Loop MonitorGetCount()
         {
-            Found := true
-            break
+            ; The full size of the screen finds the correct screen, also when
+            ; the point is on the taskbar
+            MonitorGet(A_Index, &Left, &Top, &Right, &Bottom)
+
+            if (X >= Left && X < Right && Y >= Top && Y < Bottom)
+            {
+                ; The work area keeps the window off the taskbar
+                MonitorGetWorkArea(A_Index, &Left, &Top, &Right, &Bottom)
+                Found := true
+                break
+            }
         }
+
+        if (!Found)
+            MonitorGetWorkArea( , &Left, &Top, &Right, &Bottom)
     }
+    catch
+        return ""
 
-    if (!Found)
-        MonitorGetWorkArea( , &Left, &Top, &Right, &Bottom)
-
-    return { X: Min(Max(X, Left), Right - WindowWidth)
-        , Y: Min(Max(Y, Top), Bottom - WindowHeight) }
+    ; Max comes last, so that a small screen keeps the window on the screen
+    return { X: Max(Left, Min(X, Right - Width))
+        , Y: Max(Top, Min(Y, Bottom - Height)) }
 }
 
 ; A window of this program, or a window of the shell, cannot accept a paste.
@@ -687,18 +752,24 @@ SnipSend(SnipId, CopyOnly := false)
         return
 
     ; Ignore folders and tree items that have no file
-    if (!IsInteger(SnipId))
+    Path := SnippetPath(SnipId)
+
+    if (Path = "")
         return
 
-    SnipId := Integer(SnipId)
-
-    if (!SnipsArray.Has(SnipId))
-        return
-
-    Snip := ReadSnippet(SnipsArray[SnipId].Path)
+    Snip := ReadSnippet(Path)
 
     if (Snip = "")
         return
+
+    ReverseCount := CutCursorCommand(&Snip)
+
+    ; The file can hold nothing more than a cursor command
+    if (Snip = "")
+    {
+        Notify("This snippet has no text.")
+        return
+    }
 
     Busy := true
 
@@ -713,7 +784,7 @@ SnipSend(SnipId, CopyOnly := false)
         if (CopyOnly)
             CopySnippet(Snip)
         else
-            PasteSnippet(Snip)
+            PasteSnippet(Snip, ReverseCount)
     }
     finally
     {
@@ -726,7 +797,16 @@ SnipSend(SnipId, CopyOnly := false)
 ReadSnippet(Path)
 {
     try
-        return FileRead(Path)
+    {
+        Text := FileRead(Path)
+
+        ; A replacement character shows that the file is not UTF-8. Read the
+        ; file again with the code page of Windows.
+        if (InStr(Text, Chr(0xFFFD)))
+            Text := FileRead(Path, "CP0")
+
+        return Text
+    }
     catch
     {
         Notify("Snips cannot read the file: " Path)
@@ -736,31 +816,41 @@ ReadSnippet(Path)
 
 ; Find the cursor position command and remove it from the snippet.
 ; Snips accepts the marker {|} in the text, and also the older command <<-X on
-; the last line. The result is the number of characters between the cursor and
-; the end of the snippet.
+; the last line. The result is the number of steps that the cursor must go back
+; from the end of the snippet.
 CutCursorCommand(&Snip)
 {
-    if (MarkerPos := InStr(Snip, "{|}"))
-    {
-        Snip := SubStr(Snip, 1, MarkerPos - 1) SubStr(Snip, MarkerPos + 3)
+    LegacyCount := 0
 
-        return CursorSteps(SubStr(Snip, MarkerPos))
-    }
-
-    ; The older command. It also removes the line break in front of it.
+    ; The older command, and the line break in front of it
     if (FoundPos := RegExMatch(Snip, "\R<<\-(\d*)\s*\Z", &Found))
     {
         Snip := SubStr(Snip, 1, FoundPos - 1)
 
-        ; The count comes from the snippet file. Keep it inside the snippet.
-        return Min(Found[1] + 0, StrLen(Snip))
+        ; The number comes from the snippet file. It can be absent or too large.
+        if (Found[1] != "")
+        {
+            Count := Found[1] + 0
+            LegacyCount := (Count > StrLen(Snip)) ? StrLen(Snip) : Integer(Count)
+        }
     }
 
-    return 0
+    ; The marker has priority. Snips removes all markers and puts the cursor at
+    ; the first one.
+    if (MarkerPos := InStr(Snip, "{|}"))
+    {
+        Snip := StrReplace(Snip, "{|}", "")
+
+        return CursorSteps(SubStr(Snip, MarkerPos))
+    }
+
+    return LegacyCount
 }
 
 ; Count the steps that the cursor makes through a text. A CR LF pair is one
 ; step, but two characters.
+;
+; The older command <<-X gives a number of steps and needs no calculation.
 CursorSteps(Text)
 {
     Steps := StrLen(Text)
@@ -772,33 +862,34 @@ CursorSteps(Text)
     return Steps
 }
 
-CopySnippet(Snip)
+; Put a text on the clipboard. Return false when it does not work.
+PutOnClipboard(Text)
 {
-    ReverseCount := CutCursorCommand(&Snip)
-
     try
-    {
-        A_Clipboard := Snip
-    }
+        A_Clipboard := Text
     catch
     {
         Notify("Another program holds the clipboard. Try again.")
-        return
+        return false
     }
 
     if (!ClipWait(1))
     {
         Notify("Snips cannot put the snippet on the clipboard.")
-        return
+        return false
     }
 
-    Notify("Snips put the snippet on the clipboard.")
+    return true
 }
 
-PasteSnippet(Snip)
+CopySnippet(Snip)
 {
-    ReverseCount := CutCursorCommand(&Snip)
+    if (PutOnClipboard(Snip))
+        Notify("Snips put the snippet on the clipboard.")
+}
 
+PasteSnippet(Snip, ReverseCount)
+{
     ; Save the clipboard
     try
         ClipSaved := ClipboardAll()
@@ -810,19 +901,8 @@ PasteSnippet(Snip)
 
     try
     {
-        try
-            A_Clipboard := Snip
-        catch
-        {
-            Notify("Another program holds the clipboard. Try again.")
+        if (!PutOnClipboard(Snip))
             return
-        }
-
-        if (!ClipWait(1))
-        {
-            Notify("Snips cannot put the snippet on the clipboard.")
-            return
-        }
 
         if (!ActivateTarget())
             return
@@ -832,7 +912,11 @@ PasteSnippet(Snip)
         KeyWait("Enter", "T1")
         KeyWait("Control", "T1")
 
-        Send("^v")
+        if (WinActive("ahk_class ConsoleWindowClass") && IsLegacyConsole())
+            ; The legacy console has no CTRL+V. Use the Edit menu of the window.
+            SendEvent("!{Space}ep")
+        else
+            Send("^v")
 
         if (ReverseCount)
             SendInput("{Left " ReverseCount "}")
@@ -849,6 +933,16 @@ PasteSnippet(Snip)
         catch
             Notify("Snips cannot restore the clipboard.")
     }
+}
+
+; The Windows setting ForceV2 turns the new console on. When the value is 0,
+; the user selected the legacy console, which has no CTRL+V.
+IsLegacyConsole()
+{
+    try
+        return RegRead("HKEY_CURRENT_USER\Console", "ForceV2") = 0
+    catch
+        return false
 }
 
 ; Put the focus on the window that Snips pastes into
@@ -946,6 +1040,8 @@ The file snips.ini in the program folder sets these options:
     position           Where the window opens: center, caret, or mouse. Default: center
     autorefresh        Set to Y to read changed snippet files when the window opens. Default: Y
 
+Press CTRL+R after you change snips.ini. Snips then reads the file again.
+
 ---Snippet Files---
 All snippets are plain text files in the \snips folder in the program folder. Each file contains one snippet. Edit the files in the \snips folder to change your collection. The tree shows your folder structure. The file names are the snippet titles in the search and in the tree. Snips reads a file as UTF-8.
 
@@ -958,7 +1054,9 @@ Example snippet file:
 
 After the paste, the cursor is between the brackets.
 
-Snips also accepts the older command <<-X alone on the last line of the file. Replace X with the number of characters between the cursor position and the end of the snippet.
+A snippet cannot contain the three characters of the marker as text.
+
+Snips also accepts the older command <<-X alone on the last line of the file. Replace X with the number of steps between the cursor position and the end of the snippet.
 
 ---Thanks---
 AutoHotkey developers and forums.

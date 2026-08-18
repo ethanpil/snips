@@ -60,6 +60,8 @@ The file snips.ini in the program folder sets these options:
 
 Write comments in snips.ini on their own lines. Start each comment line with a semicolon.
 
+Press CTRL+R after you change snips.ini. Snips then reads the file again. The `key` option is an exception: it needs a restart.
+
 To keep your snippets on more than one computer, put the snippet folder in Dropbox, OneDrive, or a git repository, and set `folder` to that full path.
 
 ## Snippet Files
@@ -78,7 +80,9 @@ Example snippet file:
 
 After the paste, the cursor is between the brackets.
 
-Snips also accepts the older command `<<-X` alone on the last line of the file. Replace X with the number of characters between the cursor position and the end of the snippet. Your older snippet files continue to operate.
+A snippet cannot contain the three characters of the marker as text. If a snippet contains the marker more than one time, Snips uses the first one and removes the others.
+
+Snips also accepts the older command `<<-X` alone on the last line of the file. Replace X with the number of steps between the cursor position and the end of the snippet. Your older snippet files continue to operate.
 
 ## Default Snippets
 
