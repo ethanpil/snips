@@ -5,6 +5,53 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Rewrite the program for AutoHotkey v2.0. AutoHotkey v1.1 is at the end of its
+  life. To run the program from source you now need AutoHotkey v2.0 or later.
+  The compiled program does not need AutoHotkey.
+- Snips registers the hotkey and the tray menu before it reads the snippet
+  folder. You can always stop the program from the tray, also when the folder
+  contains many files.
+- Snips reads snips.ini again on each refresh. An edit of the settings now
+  takes effect when you press CTRL+R.
+- Snips shows the number of snippets after a refresh.
+- Snips gives a message when it cannot paste, in place of no result.
+
+### Fixed
+
+- Fix loss of the clipboard contents. Snips now always gives the clipboard back
+  to you, also after an error.
+- Fix a paste into the Snips window. A second hotkey press during a paste can
+  no longer interrupt the paste.
+- Fix wrong key operation in the target program. Snips no longer holds the
+  CTRL key down while it waits.
+- Fix a paste into the wrong window. Snips now waits for the target window to
+  take the focus.
+- Fix a paste of the wrong snippet after a refresh. Snips now clears the search
+  results, which point to the old list.
+- Fix a stop of the program. A cursor position command with a very large number
+  can no longer make Snips send millions of keys.
+- Fix an unwanted line break in the pasted text. The cursor position command
+  now removes the line break in front of it.
+- Fix keys that go into the target program. Snips waits for you to release the
+  Enter key before it pastes.
+- Fix a paste into the About window or into the taskbar. Snips now pastes only
+  into a window of a different program.
+- Fix a loop when the snippet folder contains a junction or a symbolic link.
+- Fix an empty or a bad folder value in snips.ini. Snips uses the default value.
+- Fix slow keys in other programs. The Snips hotkeys no longer make Windows
+  wait for the program.
+- Fix the keyboard in the search results. The "No Results." line no longer
+  takes the focus.
+- Fix a start error when the snippet folder does not exist. Snips shows a
+  message and continues.
+- Fix an error when Snips cannot read a snippet file. Snips shows a message and
+  continues.
+- Fix the Enter key in the About window. The key closes the window again.
+- Fix the position of the Snips window. The window shows in front of other
+  windows that are always on top.
+
 ## [1.21] - 2026-08-16
 
 ### Added
