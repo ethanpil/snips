@@ -23,10 +23,12 @@ jobs:
       - name: Get the source
         uses: actions/checkout@v4
 
+      # The files come from GitHub. The AutoHotkey website sends a browser test
+      # to a build machine, which stops the download.
       - name: Get AutoHotkey v2
         shell: pwsh
         run: |
-          $url = "https://www.autohotkey.com/download/2.0/AutoHotkey_$env:AHK_VERSION.zip"
+          $url = "https://github.com/AutoHotkey/AutoHotkey/releases/download/v$env:AHK_VERSION/AutoHotkey_$env:AHK_VERSION.zip"
           Invoke-WebRequest -Uri $url -OutFile ahk.zip -UseBasicParsing
           Expand-Archive -Path ahk.zip -DestinationPath tools\ahk -Force
 
