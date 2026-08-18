@@ -1,2 +1,1 @@
-$var = new \Controllers\;
-<<-1
+$var = new \Controllers\{|};

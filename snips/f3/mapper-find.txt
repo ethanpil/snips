@@ -1,2 +1,1 @@
-$mapper->find([''],[null]);
-<<-11
+$mapper->find(['{|}'],[null]);

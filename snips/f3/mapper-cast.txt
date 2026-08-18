@@ -1,2 +1,1 @@
-$mapper->cast();
-<<-2
+$mapper->cast({|});

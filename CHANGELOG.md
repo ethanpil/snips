@@ -5,6 +5,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Add the cursor marker `{|}`. Write the marker in the snippet text at the
+  position for the cursor. The older command `<<-X` continues to operate.
+- Add CTRL+Enter. This copies the snippet to the clipboard and does not paste
+  it. Use it for a program that does not accept a paste.
+- Add CTRL+N. This makes a new snippet in the selected folder and opens it in
+  your text editor.
+- Add CTRL+E. This opens the selected snippet in your text editor.
+- Add "Open Snippets Folder" to the tray menu.
+- Add a search with more than one word. All words must be in the name or in the
+  folder name. For example, "html form" finds the snippet "form" in the folder
+  "html".
+- Add a full path for the `folder` option, for example `D:\Dropbox\snips`. You
+  can keep your snippets in a folder that a different program keeps in step
+  between computers.
+- Add the `position` option. The window can open in the centre of the screen, at
+  the text cursor, or at the mouse.
+- Add the `autorefresh` option. Snips reads changed snippet files when the
+  window opens.
+- The hotkey now also closes the window when the window is in front.
+
 ### Changed
 
 - Rewrite the program for AutoHotkey v2.0. AutoHotkey v1.1 is at the end of its
@@ -17,6 +39,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   takes effect when you press CTRL+R.
 - Snips shows the number of snippets after a refresh.
 - Snips gives a message when it cannot paste, in place of no result.
+- Snips reads a snippet file as UTF-8. A byte order mark is no longer necessary.
+- Snips pastes into the command prompt with CTRL+V. The old menu commands were
+  for a Windows version that is no longer in support, and they operated only on
+  an English Windows.
+- All included snippets now use the `{|}` marker. The cursor goes to the same
+  position as before.
+- Correct the cursor position in the f3-devoid and f3-exists snippets. The
+  cursor goes between the quote marks.
 
 ### Fixed
 

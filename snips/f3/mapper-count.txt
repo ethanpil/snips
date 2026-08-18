@@ -1,2 +1,1 @@
-$mapper->count(['']);
-<<-4
+$mapper->count(['{|}']);
