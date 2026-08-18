@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.0] - 2026-08-18
+
 ### Added
 
 - Add the cursor marker `{|}` for the snippet text (23b72df).
@@ -159,7 +161,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - First release (4e7afb5).
 
-[unreleased]: https://github.com/ethanpil/snips/compare/1.21...HEAD
+[unreleased]: https://github.com/ethanpil/snips/compare/2.0...HEAD
+[2.0]: https://github.com/ethanpil/snips/compare/1.21...2.0
 [1.21]: https://github.com/ethanpil/snips/compare/1.2...1.21
 [1.2]: https://github.com/ethanpil/snips/compare/1.1...1.2
 [1.1]: https://github.com/ethanpil/snips/compare/1.0...1.1
