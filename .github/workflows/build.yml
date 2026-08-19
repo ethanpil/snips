@@ -51,8 +51,16 @@ jobs:
       - name: Make snips.exe
         shell: pwsh
         run: |
-          & tools\ahk2exe\Ahk2Exe.exe /in snips.ahk /out snips.exe `
-            /base tools\ahk\AutoHotkey64.exe /icon snips.ico /silent
+          $p = Start-Process -FilePath tools\ahk2exe\Ahk2Exe.exe -NoNewWindow -Wait -PassThru `
+            -ArgumentList '/in', 'snips.ahk', '/out', 'snips.exe',
+                          '/base', 'tools\ahk\AutoHotkey64.exe',
+                          '/icon', 'snips.ico', '/silent'
+          # The compiler can give control back before the file is complete
+          $limit = (Get-Date).AddSeconds(60)
+          while ((Get-Date) -lt $limit) {
+            if ((Test-Path snips.exe) -and (Get-Item snips.exe).Length -gt 0) { break }
+            Start-Sleep -Milliseconds 500
+          }
           if (-not (Test-Path snips.exe)) { throw "The compiler made no file." }
           "snips.exe is {0} bytes." -f (Get-Item snips.exe).Length
 
